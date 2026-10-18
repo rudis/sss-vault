@@ -10,6 +10,9 @@ The actual implementation is copied from the shamir/ directory of
 The code in shamir/ is taken from {0c6c13dd38}[0c6c13dd38 (license: update
 headers to IBM Corp. (#10229) (#10233), 2025-10-21)].
 
+The static/ directory contains static binaries for Linux/amd64 and
+Windows/amd64 in case no Go compiler is available.
+
 
 == Limitations
 
