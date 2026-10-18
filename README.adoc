@@ -1,0 +1,78 @@
+= README
+
+:vault: https://github.com/hashicorp/vault
+:0c6c13dd38: https://github.com/hashicorp/vault/commit/0c6c13dd38b9f921009b177797016dfc08dbc211
+
+sss-vault is a CLI tool in Go that implements Shamir's Secret Sharing (SSS).
+The actual implementation is copied from the shamir/ directory of
+{vault}[HashiCorp's Vault]. Secrets and parts are Base64-encoded.
+
+The code in shamir/ is taken from {0c6c13dd38}[0c6c13dd38 (license: update
+headers to IBM Corp. (#10229) (#10233), 2025-10-21)].
+
+
+== Limitations
+
+SSS doesn't protect against (malicious) modifications of the parts. This makes
+it possible for `combine` to seemingly succeed but not recover the actual
+secret. This can also happen if fewer parts than the threshold are provided.
+If this is an issue, add a cryptographic hash to the secret before splitting.
+When the secret is used to decrypt authenticated data, any modifications are
+detected and the hash is not necessary.
+
+Make sure the secret is not stored in the shell history or anywhere similar,
+such as terminal scrollback.
+
+
+== Build
+
+Needs Go to build, no external dependencies
+
+    $ go build
+
+
+== Usage
+
+....
+$ base64
+Test Message
+<Ctrl-D>
+VGVzdCBNZXNzYWdlCg==
+$ ./sss-vault split 5 3
+Waiting for secret as base64 on stdin until EOF
+VGVzdCBNZXNzYWdlCg==
+<Ctrl-D>
+
+Generated 5 parts with threshold 3 as base64
+
+part 1:
+jDfKZ5pvHA8lreTtcC4=
+
+part 2:
+M7apcB/tRrF9HUDQWy8=
+
+part 3:
+bOhnRkXm5Op7IBbrRAc=
+
+part 4:
+jY1fTie6hx3PxeQWfLw=
+
+part 5:
+C6Y0TljjcEYDzMpbP9w=
+
+$ ./sss-vault combine
+Waiting for parts as base64 on stdin until EOF (one per line)
+M7apcB/tRrF9HUDQWy8=
+jDfKZ5pvHA8lreTtcC4=
+C6Y0TljjcEYDzMpbP9w=
+<Ctrl-D>
+
+Recovered secret as base64:
+VGVzdCBNZXNzYWdlCg==
+....
+
+
+== License
+
+The CLI is licensed under GPL-3.0-or-later and the SSS code from Vault under
+MPL-2.0.

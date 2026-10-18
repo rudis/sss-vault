@@ -1,0 +1,8 @@
+[[Jobs]]
+Image = "golang:1.27"
+Script = """
+mkdir -p /punyci-cache/pkg
+ln -s /punyci-cache/pkg /go/pkg
+./ci/run
+"""
+Cache = true
