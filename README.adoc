@@ -5,7 +5,7 @@
 
 sss-vault is a CLI tool in Go that implements Shamir's Secret Sharing (SSS).
 The actual implementation is copied from the shamir/ directory of
-{vault}[HashiCorp's Vault]. Secrets and parts are Base64-encoded.
+{vault}[HashiCorp's Vault].
 
 The code in shamir/ is taken from {0c6c13dd38}[0c6c13dd38 (license: update
 headers to IBM Corp. (#10229) (#10233), 2025-10-21)].
@@ -37,41 +37,52 @@ Needs Go to build, no external dependencies
 == Usage
 
 ....
-$ base64
-Test Message
-<Ctrl-D>
-VGVzdCBNZXNzYWdlCg==
 $ ./sss-vault split 5 3
-Waiting for secret as base64 on stdin until EOF
-VGVzdCBNZXNzYWdlCg==
+Waiting for secret on stdin until EOF
+Test
+Message
+!
 <Ctrl-D>
 
-Generated 5 parts with threshold 3 as base64
+Generated 5 parts with threshold 3
 
 part 1:
-jDfKZ5pvHA8lreTtcC4=
+YKJz2uuG6/n80bzKjm5Yjw==
 
 part 2:
-M7apcB/tRrF9HUDQWy8=
+Es+deRZMztqSCClXozmfiw==
 
 part 3:
-bOhnRkXm5Op7IBbrRAc=
+B8z9cZOdVlMF/404WONuPQ==
 
 part 4:
-jY1fTie6hx3PxeQWfLw=
+lnqwvWBJRAcRvPj3WwW6Gw==
 
 part 5:
-C6Y0TljjcEYDzMpbP9w=
+6jHfMI3pqqj6MC7SJb9iBg==
+....
 
+....
 $ ./sss-vault combine
-Waiting for parts as base64 on stdin until EOF (one per line)
-M7apcB/tRrF9HUDQWy8=
-jDfKZ5pvHA8lreTtcC4=
-C6Y0TljjcEYDzMpbP9w=
+Waiting for parts on stdin until EOF (one per line)
+6jHfMI3pqqj6MC7SJb9iBg==
+YKJz2uuG6/n80bzKjm5Yjw==
+B8z9cZOdVlMF/404WONuPQ==
 <Ctrl-D>
 
-Recovered secret as base64:
-VGVzdCBNZXNzYWdlCg==
+Recovered secret:
+Test
+Message
+!
+....
+
+Terminal injection is avoided by escaping if necessary:
+
+....
+$ ./sss-vault combine
+[...]
+Recovered secret (escaped):
+"\x1b[31mterminal injection\x1b[0m"
 ....
 
 

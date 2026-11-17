@@ -1,6 +1,6 @@
 // sss-vault is a CLI tool that implements Shamir's Secret Sharing (SSS). The
 // actual implementation is copied from the shamir/ directory of HashiCorp's
-// Vault [1]. Secrets and parts are Base64-encoded.
+// Vault [1].
 //
 // [1] https://github.com/hashicorp/vault
 
@@ -17,6 +17,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"sss-vault/shamir"
 )
@@ -41,27 +43,22 @@ func main() {
 			log.Fatalf("invalid threshold: %v", err)
 		}
 		_, err = fmt.Fprintln(os.Stderr,
-			"Waiting for secret as base64 on stdin until EOF")
+			"Waiting for secret on stdin until EOF")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		stdin, err := io.ReadAll(os.Stdin)
+		secret, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			log.Fatal(err)
 		}
-		secret, err := base64.StdEncoding.DecodeString(string(stdin))
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		res, err := shamir.Split(secret, parts, threshold)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		_, err = fmt.Printf(
-			"\nGenerated %d parts with threshold %d as base64\n\n",
+			"\nGenerated %d parts with threshold %d\n\n",
 			parts, threshold)
 		if err != nil {
 			log.Fatal(err)
@@ -76,7 +73,7 @@ func main() {
 
 	} else if os.Args[1] == "combine" && len(os.Args) == 2 {
 		_, err := fmt.Fprintln(os.Stderr,
-			"Waiting for parts as base64 on stdin until EOF (one per line)")
+			"Waiting for parts on stdin until EOF (one per line)")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -104,8 +101,11 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		_, err = fmt.Printf("\nRecovered secret as base64:\n%s\n",
-			base64.StdEncoding.EncodeToString(secret))
+		format := "\nRecovered secret:\n%s\n"
+		if !isTerminalSafe(string(secret)) {
+			format = "\nRecovered secret (escaped):\n%q\n"
+		}
+		_, err = fmt.Printf(format, string(secret))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -113,6 +113,21 @@ func main() {
 	} else {
 		usage()
 	}
+}
+
+func isTerminalSafe(x string) bool {
+	if !utf8.ValidString(x) {
+		return false
+	}
+	for _, r := range x {
+		if r == '\n' || r == '\t' {
+			continue
+		}
+		if unicode.IsControl(r) || unicode.Is(unicode.Bidi_Control, r) {
+			return false
+		}
+	}
+	return true
 }
 
 // vi: set noet ts=4 sw=4 sts=4:
